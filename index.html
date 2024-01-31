@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geothermal Calculator</title>
+</head>
+<body>
+    <h1>Geothermal Calculator</h1>
+    <form method="post" action="/">
+        <label for="depth_range">Depth Range (z): </label>
+        <input type="text" name="depth_range" required><br>
+
+        <label for="area_range">Area Range (s): </label>
+        <input type="text" name="area_range" required><br>
+
+        <label for="surface_temperature">Surface Temperature (℃): </label>
+        <input type="text" name="surface_temperature" required><br>
+
+        <label for="rock_heat_generation">Rock Heat Generation (μW m^(-3)): </label>
+        <input type="text" name="rock_heat_generation" required><br>
+
+        <label for="geothermal_flux">Geothermal Flux (mW/m^2): </label>
+        <input type="text" name="geothermal_flux" required><br>
+
+        <label for="thermal_conductivity">Thermal Conductivity (W*m/K): </label>
+        <input type="text" name="thermal_conductivity" required><br>
+
+        <label for="depth1">Depth 1 (KM): </label>
+        <input type="text" name="depth1" required><br>
+
+        <label for="depth2">Depth 2 (KM): </label>
+        <input type="text" name="depth2" required><br>
+
+
+
+        <label for="year">Year: </label>
+        <input type="text" name="year" required><br>
+
+        <input type="submit" value="Calculate">
+    </form>
+</body>
+</html>
+
+
