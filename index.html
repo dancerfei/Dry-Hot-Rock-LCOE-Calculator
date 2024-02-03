@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geothermal Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h1, h2 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Geothermal Calculator</h1>
+    <form id="geothermalForm">
+        <label for="depth_range">Depth Range (z): </label>
+        <input type="text" id="depth_range" required><br>
+
+        <label for="area_range">Area Range (s): </label>
+        <input type="text" id="area_range" required><br>
+
+        <label for="surface_temperature">Surface Temperature (℃): </label>
+        <input type="text" id="surface_temperature" required><br>
+
+        <label for="rock_heat_generation">Rock Heat Generation (μW m^(-3)): </label>
+        <input type="text" id="rock_heat_generation" required><br>
+
+        <label for="geothermal_flux">Geothermal Flux (mW/m^2): </label>
+        <input type="text" id="geothermal_flux" required><br>
+
+        <label for="thermal_conductivity">Thermal Conductivity (W*m/K): </label>
+        <input type="text" id="thermal_conductivity" required><br>
+
+        <label for="depth1">Depth 1 (KM): </label>
+        <input type="text" id="depth1" required><br>
+
+        <label for="depth2">Depth 2 (KM): </label>
+        <input type="text" id="depth2" required><br>
+
+        <label for="year">Year: </label>
+        <input type="text" id="year" required><br>
+
+        <button type="button" onclick="calculate()">Calculate</button>
+    </form>
+
+    <h2>Geothermal Calculator Results</h2>
+    <div id="results"></div>
+<script>
+    function calculate() {
+        var depthRange = parseFloat(document.getElementById('depth_range').value);
+        var areaRange = parseFloat(document.getElementById('area_range').value);
+        var surfaceTemperature = parseFloat(document.getElementById('surface_temperature').value);
+        var rockHeatGeneration = parseFloat(document.getElementById('rock_heat_generation').value);
+        var geothermalFlux = parseFloat(document.getElementById('geothermal_flux').value);
+        var thermalConductivity = parseFloat(document.getElementById('thermal_conductivity').value);
+        var depth1 = parseFloat(document.getElementById('depth1').value);
+        var depth2 = parseFloat(document.getElementById('depth2').value);
+        var year = parseInt(document.getElementById('year').value);
+
+        var fluidDensity = 1078;
+        var fluidSpecificHeat = 4250;
+        var averageCapacityFactor = 0.9;
+        var fluidFlowRate = {2025: 60, 2030: 70, 2035: 85, 2040: 100, 2045: 100, 2050: 100};
+        var annualOperatingHours = 8760;
+
+        var drillingCostCoefficients = {2025: 0.95, 2030: 0.9, 2035: 0.85, 2040: 0.8, 2045: 0.75, 2050: 0.7};
+        var cExtra = 1;
+        var learningFactor = 0.87;
+
+        var depthTemperature1 = surfaceTemperature + (geothermalFlux * depth1 / thermalConductivity) -
+    (rockHeatGeneration * Math.pow(depth1, 2) / (2 * thermalConductivity));
+        var depthTemperature2 = surfaceTemperature + (geothermalFlux * depth2 / thermalConductivity) -
+    (rockHeatGeneration * Math.pow(depth2, 2) / (2 * thermalConductivity));
+
+        var heatStorage = 2550 * 1 * areaRange * ((depthTemperature1 + depthTemperature2) / 2 - surfaceTemperature) *
+            (depthRange) * (1e-18);
+
+        var netThermalEfficiency = 0.00052 * (depthTemperature2 + 18) / 2 + 0.032;
+        var fluidFlow = fluidFlowRate[year];
+        var annualPowerGeneration = fluidFlow * fluidDensity * fluidSpecificHeat *
+    (depthTemperature2 - 18) * netThermalEfficiency * 1e-3 * annualOperatingHours * averageCapacityFactor / 1e9;
+        var installedCapacity = annualPowerGeneration / (averageCapacityFactor * annualOperatingHours) * 1000;
+
+        var drillingCost = (1.72 * 1e-7 * 1 + 2.3e-3 + 0.62 *
+            (geothermalFlux / (thermalConductivity * depthTemperature2)) * drillingCostCoefficients[year]) * depth2;
+        var surfacePowerCost = 750 + 1125 * (Math.exp(-0.006115 * (installedCapacity - 5)));
+        var reservoirStimulationCost = 2.5;
+        var geothermalDistributionCost = 50 * installedCapacity / 1000;
+        var explorationCost = 1.12 * (cExtra + 0.6 * drillingCost);
+        var capex = (drillingCost * 2 + surfacePowerCost * installedCapacity / 1e3 + reservoirStimulationCost +
+    geothermalDistributionCost + explorationCost) * learningFactor;
+        var lcoe = (capex * 0.08 + capex * 0.02) * 1e3 / annualPowerGeneration;
+
+
+        var resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <h2>Geothermal Data:</h2>
+            <p>Depth Temperature 1: ${depthTemperature1.toFixed(1)} °C</p>
+            <p>Depth Temperature 2: ${depthTemperature2.toFixed(2)} °C</p>
+            <p>Heat Storage: ${heatStorage.toFixed(2)} EJ</p>
+
+            <h2>Geothermal Power:</h2>
+            <p>Net Thermal Efficiency: ${netThermalEfficiency.toFixed(4)}</p>
+            <p>Annual Power Generation: ${annualPowerGeneration.toFixed(2)} GWh</p>
+            <p>Installed Capacity: ${installedCapacity.toFixed(2)} MW</p>
+
+            <h2>Financial Indicators:</h2>
+            <p>Drilling Cost: ${drillingCost.toFixed(2)} M$/well</p>
+            <p>Surface Power Cost: ${surfacePowerCost.toFixed(2)} $/kW</p>
+            <p>Reservoir Stimulation Cost: ${reservoirStimulationCost.toFixed(2)} M$</p>
+            <p>Geothermal Distribution Cost: ${geothermalDistributionCost.toFixed(2)} M$</p>
+            <p>Exploration Cost: ${explorationCost.toFixed(2)} M$</p>
+            <p>CAPEX: ${capex.toFixed(2)} M$</p>
+            <p>LCOE: ${lcoe.toFixed(2)} $/MWh</p>
+        `;
+    }
+</script>
+
+
+
+</body>
+</html>
